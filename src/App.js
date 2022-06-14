@@ -30,6 +30,7 @@ class App extends React.Component {
 
     this.state = {
       tasks: tasks,
+      formOpened: false,
     }
   }
 
@@ -43,11 +44,27 @@ class App extends React.Component {
     this.setState({tasks: this.state.tasks.map((task) => task.id === id ? {...task, reminder: !task.reminder} : task)});
   }
 
+  // AddTask
+  addTask = (task) => {
+    const id = Math.floor(Math.random() * 100);
+
+    this.setState({tasks: [...this.state.tasks, {...task, id}]});
+  }
+
+  // Toggle Form
+  toggleForm = () => {
+    this.setState({formOpened: !this.state.formOpened});
+  }
+
   render() {
     return (
       <div className="container">
-        <Header />
-        <AddTask />
+        <Header 
+        toggleForm = {this.toggleForm}
+        formOpened = {this.state.formOpened}/>
+        {
+          this.state.formOpened && <AddTask onAdd = {this.addTask}/>
+        }
         <TaskList
           tasks={this.state.tasks}
           deleteTask={this.deleteTask}
