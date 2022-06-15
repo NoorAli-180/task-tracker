@@ -1,8 +1,11 @@
 import React from 'react';
+import { Route, Routes} from 'react-router-dom';
 
 import { Header } from './components/Header.jsx';
 import { TaskList } from './components/TaskList.jsx';
 import { AddTask } from './components/AddTask.jsx';
+import { Footer } from './components/Footer.jsx';
+import { About } from './components/About.jsx';
 
 class App extends React.Component {
   constructor(props) {
@@ -84,18 +87,29 @@ class App extends React.Component {
   
   render() {
     return (
-      <div className="container">
-        <Header 
-        toggleForm = {this.toggleForm}
-        formOpened = {this.state.formOpened}/>
-        {
-          this.state.formOpened && <AddTask onAdd = {this.addTask}/>
-        }
-        <TaskList
-          tasks={this.state.tasks.length > 0 ? this.state.tasks : []}
-          deleteTask={this.deleteTask}
-          onToggle={this.toggleReminder} />
-      </div>
+        <div className="container">
+          <Header 
+            toggleForm = {this.toggleForm}
+            formOpened = {this.state.formOpened}/>
+
+            <Routes>
+            <Route exact path="/" element={
+              <>
+                {this.state.formOpened && <AddTask onAdd = {this.addTask}/>}
+
+                <TaskList
+                  tasks={this.state.tasks.length > 0 ? this.state.tasks : []}
+                  deleteTask={this.deleteTask}
+                  onToggle={this.toggleReminder} />
+              </>
+            } />
+                
+            <Route path = "/about" element = {<About/>}/>
+          </Routes>
+          <Footer />
+
+          
+        </div>
     );
   }
 }
