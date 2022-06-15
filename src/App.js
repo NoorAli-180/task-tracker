@@ -4,51 +4,52 @@ import { Header } from './components/Header.jsx';
 import { TaskList } from './components/TaskList.jsx';
 import { AddTask } from './components/AddTask.jsx';
 
-const tasks = [
-  {
-    id: 1,
-    text: "Doctor's Appointment",
-    day: 'Feb 5th at 2:30pm',
-    reminder: true,
-  },
-  {
-    id: 2,
-    text: "Meeting at school",
-    day: 'Feb 6th at 1:30pm',
-    reminder: true,
-  },
-  {
-    id: 3,
-    text: "Food Shopping",
-    day: 'Feb 5th at 12:00pm',
-    reminder: false,
-  },
-];
 class App extends React.Component {
   constructor(props) {
     super(props);
-
+    
     this.state = {
-      tasks: tasks,
+      tasks: [],
       formOpened: false,
     }
   }
 
   //  Delete Task
-  deleteTask = (id) => {
-    this.setState({tasks: this.state.tasks.filter((task) => task.id !== id)});
+  deleteTask = async (id) => {
+    await fetch(`http://localhost:5000/tasks/${id}`, {
+      method: 'DELETE',
+    });
+    
+    this.setState({tasks: await this.fetchTasks()});
+  }
+  
+  // AddTask
+  addTask = async (task) => {
+    await fetch('http://localhost:5000/tasks', {
+      method: 'POST',
+      headers: {
+        'Content-type': 'application/json'
+      },
+      body: JSON.stringify(task),
+    });
+
+    this.setState({tasks: await this.fetchTasks()});
   }
 
   // Toggle Reminder
-  toggleReminder = (id) => {
-    this.setState({tasks: this.state.tasks.map((task) => task.id === id ? {...task, reminder: !task.reminder} : task)});
-  }
+  toggleReminder = async (id) => {
+    const taskToToggle = await this.fetchTask(id);
+    const updTask = {...taskToToggle, reminder: !taskToToggle.reminder};
 
-  // AddTask
-  addTask = (task) => {
-    const id = Math.floor(Math.random() * 100);
-
-    this.setState({tasks: [...this.state.tasks, {...task, id}]});
+    await fetch(`http://localhost:5000/tasks/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(updTask)
+    });
+    
+    this.setState({tasks: await this.fetchTasks()});
   }
 
   // Toggle Form
@@ -56,6 +57,31 @@ class App extends React.Component {
     this.setState({formOpened: !this.state.formOpened});
   }
 
+  // Function: to fetch all the tasks from server. 
+  fetchTasks = async () => {
+    const res = await fetch('http://localhost:5000/tasks');
+    const tasks = await res.json();
+  
+    return tasks;
+  }
+  
+  // Function: to fetch only one task on the basis of id from server. 
+  fetchTask = async (id) => {
+    const res = await fetch(`http://localhost:5000/tasks/${id}`);
+    const task = await res.json();
+  
+    return task;
+  }
+
+/////////////////////////////////////////////////////////////////////////
+  componentDidMount () {
+    const fetch = async () => {
+      const tasks = await this.fetchTasks();
+      this.setState({tasks: tasks});
+    }
+    fetch();
+  }
+  
   render() {
     return (
       <div className="container">
@@ -66,7 +92,7 @@ class App extends React.Component {
           this.state.formOpened && <AddTask onAdd = {this.addTask}/>
         }
         <TaskList
-          tasks={this.state.tasks}
+          tasks={this.state.tasks.length > 0 ? this.state.tasks : []}
           deleteTask={this.deleteTask}
           onToggle={this.toggleReminder} />
       </div>
